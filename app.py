@@ -292,7 +292,7 @@ with cols[0]:  # HEV
         st.write(f"- Consum mixt: {specs['Consum mixt']} l/100km")
         st.write(f"- Cilindree: {specs['Cilindree']} cm³")
         st.write(f"- Greutate totală: {specs['Greutate totala']} kg")
-        st.write(f"- Putere maximă: {specs['Putere maxima']} CP")
+        st.write(f"- Putere maximă: {specs['Putere maxima']} kW")
         st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} Nm")
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -313,7 +313,7 @@ with cols[1]:  # PHEV
         st.write(f"- Cilindree: {specs['Cilindree']} cm³")
         st.write(f"- Capacitate baterie: {specs['Capacitate baterie']} kWh")
         st.write(f"- Greutate totală: {specs['Greutate totala']} kg")
-        st.write(f"- Putere maximă: {specs['Putere maxima']} CP")
+        st.write(f"- Putere maximă: {specs['Putere maxima']} kW")
         st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} Nm")
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -331,8 +331,8 @@ with cols[2]:  # BEV
         st.write(f"- Consum: {specs['Consum']} kWh/100km")
         st.write(f"- Capacitate baterie: {specs['Capacitate baterie']} kWh")
         st.write(f"- Greutate totală: {specs['Greutate totala']} kg")
-        st.write(f"- Putere maximă: {specs['Putere maxima']} CP")
-        st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} Nm")
+        st.write(f"- Putere maximă: {specs['Putere maxima']} kW")
+        st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} kW")
         st.write(f"- Autonomie: {specs['Autonomie']} km")
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -353,7 +353,7 @@ with cols[3]:  # FCEV
         st.write(f"- Consum: {specs['Consum']} kg/100km")
         st.write(f"- Capacitate rezervor hidrogen: {specs['Capacitate rezervor hidrogen']} kg")
         st.write(f"- Greutate totală: {specs['Greutate totala']} kg")
-        st.write(f"- Putere maximă: {specs['Putere maxima']} CP")
+        st.write(f"- Putere maximă: {specs['Putere maxima']} kW")
         st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} Nm")
         st.write(f"- Autonomie: {specs['Autonomie']} km")
         st.markdown('</div>', unsafe_allow_html=True)
