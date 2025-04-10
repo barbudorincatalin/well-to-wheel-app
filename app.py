@@ -24,6 +24,13 @@ h1, h2, h3, p, .stMarkdown, .stSelectbox, .stRadio, .stSlider {
     padding: 10px;
     margin-bottom: 15px;
 }
+.specs-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #f9f9f9;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -83,6 +90,126 @@ modele_vehicule = {
                 "Albastru": {"emisii_well": 48},
                 "Verde": {"emisii_well": 0}
             }
+        }
+    }
+}
+
+# Specificații tehnice pentru fiecare model
+specs_tehnice = {
+    "HEV": {
+        "Toyota Corolla": {
+            "An fabricatie": "-",
+            "Consum termic": "-",
+            "Consum electric": "-",
+            "Consum mixt": "-",
+            "Cilindree": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-"
+        },
+        "Honda Civic": {
+            "An fabricatie": "-",
+            "Consum termic": "-",
+            "Consum electric": "-",
+            "Consum mixt": "-",
+            "Cilindree": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-"
+        },
+        "VW Golf": {
+            "An fabricatie": "-",
+            "Consum termic": "-",
+            "Consum electric": "-",
+            "Consum mixt": "-",
+            "Cilindree": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-"
+        }
+    },
+    "PHEV": {
+        "VW Golf": {
+            "An fabricatie": "-",
+            "Consum termic": "-",
+            "Consum electric": "-",
+            "Consum mixt": "-",
+            "Cilindree": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-"
+        },
+        "Mercedes A": {
+            "An fabricatie": "-",
+            "Consum termic": "-",
+            "Consum electric": "-",
+            "Consum mixt": "-",
+            "Cilindree": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-"
+        },
+        "BMW Seria 1": {
+            "An fabricatie": "-",
+            "Consum termic": "-",
+            "Consum electric": "-",
+            "Consum mixt": "-",
+            "Cilindree": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-"
+        }
+    },
+    "BEV": {
+        "Tesla Model 3": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+        "BMW i3": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+        "Audi Q4 e-tron": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        }
+    },
+    "FCEV": {
+        "Toyota Mirai": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate rezervor hidrogen": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+        "Hyundai Nexo": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate rezervor hidrogen": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
         }
     }
 }
@@ -152,29 +279,84 @@ vehicule_selectate = {}
 with cols[0]:  # HEV
     st.subheader("HEV")
     if st.checkbox("Adaugă HEV", key="hev_check"):
-        model = st.selectbox("Model HEV", options=list(modele_vehicule["HEV"].keys()))
+        model = st.selectbox("Selectează autovehicul HEV", options=list(modele_vehicule["HEV"].keys()))
         vehicule_selectate["HEV"] = {"model": model}
+        
+        # Afișare specificații tehnice
+        specs = specs_tehnice["HEV"][model]
+        st.markdown('<div class="specs-box">', unsafe_allow_html=True)
+        st.write("**Specificații tehnice:**")
+        st.write(f"- An fabricație: {specs['An fabricatie']}")
+        st.write(f"- Consum termic: {specs['Consum termic']} l/100km")
+        st.write(f"- Consum electric: {specs['Consum electric']} kWh/100km")
+        st.write(f"- Consum mixt: {specs['Consum mixt']} l/100km")
+        st.write(f"- Cilindree: {specs['Cilindree']} cm³")
+        st.write(f"- Greutate totală: {specs['Greutate totala']} kg")
+        st.write(f"- Putere maximă: {specs['Putere maxima']} CP")
+        st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} Nm")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 with cols[1]:  # PHEV
     st.subheader("PHEV")
     if st.checkbox("Adaugă PHEV", key="phev_check"):
-        model = st.selectbox("Model PHEV", options=list(modele_vehicule["PHEV"].keys()))
+        model = st.selectbox("Selectează autovehicul PHEV", options=list(modele_vehicule["PHEV"].keys()))
         vehicule_selectate["PHEV"] = {"model": model}
+        
+        # Afișare specificații tehnice
+        specs = specs_tehnice["PHEV"][model]
+        st.markdown('<div class="specs-box">', unsafe_allow_html=True)
+        st.write("**Specificații tehnice:**")
+        st.write(f"- An fabricație: {specs['An fabricatie']}")
+        st.write(f"- Consum termic: {specs['Consum termic']} l/100km")
+        st.write(f"- Consum electric: {specs['Consum electric']} kWh/100km")
+        st.write(f"- Consum mixt: {specs['Consum mixt']} l/100km")
+        st.write(f"- Cilindree: {specs['Cilindree']} cm³")
+        st.write(f"- Capacitate baterie: {specs['Capacitate baterie']} kWh")
+        st.write(f"- Greutate totală: {specs['Greutate totala']} kg")
+        st.write(f"- Putere maximă: {specs['Putere maxima']} CP")
+        st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} Nm")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 with cols[2]:  # BEV
     st.subheader("BEV")
     if st.checkbox("Adaugă BEV", key="bev_check"):
-        model = st.selectbox("Model BEV", options=list(modele_vehicule["BEV"].keys()))
+        model = st.selectbox("Selectează autovehicul BEV", options=list(modele_vehicule["BEV"].keys()))
         vehicule_selectate["BEV"] = {"model": model}
+        
+        # Afișare specificații tehnice
+        specs = specs_tehnice["BEV"][model]
+        st.markdown('<div class="specs-box">', unsafe_allow_html=True)
+        st.write("**Specificații tehnice:**")
+        st.write(f"- An fabricație: {specs['An fabricatie']}")
+        st.write(f"- Consum: {specs['Consum']} kWh/100km")
+        st.write(f"- Capacitate baterie: {specs['Capacitate baterie']} kWh")
+        st.write(f"- Greutate totală: {specs['Greutate totala']} kg")
+        st.write(f"- Putere maximă: {specs['Putere maxima']} CP")
+        st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} Nm")
+        st.write(f"- Autonomie: {specs['Autonomie']} km")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 with cols[3]:  # FCEV
     st.subheader("FCEV")
     if st.checkbox("Adaugă FCEV", key="fcev_check"):
-        model = st.selectbox("Model FCEV", options=list(modele_vehicule["FCEV"].keys()))
+        model = st.selectbox("Selectează autovehicul FCEV", options=list(modele_vehicule["FCEV"].keys()))
         tip_hidrogen = st.radio("Tip hidrogen", 
                                options=list(modele_vehicule["FCEV"][model]["tip_hidrogen"].keys()),
                                key=f"hidrogen_{model}")
         vehicule_selectate["FCEV"] = {"model": model, "tip_hidrogen": tip_hidrogen}
+        
+        # Afișare specificații tehnice
+        specs = specs_tehnice["FCEV"][model]
+        st.markdown('<div class="specs-box">', unsafe_allow_html=True)
+        st.write("**Specificații tehnice:**")
+        st.write(f"- An fabricație: {specs['An fabricatie']}")
+        st.write(f"- Consum: {specs['Consum']} kg/100km")
+        st.write(f"- Capacitate rezervor hidrogen: {specs['Capacitate rezervor hidrogen']} kg")
+        st.write(f"- Greutate totală: {specs['Greutate totala']} kg")
+        st.write(f"- Putere maximă: {specs['Putere maxima']} CP")
+        st.write(f"- Cuplu maxim: {specs['Cuplu maxim']} Nm")
+        st.write(f"- Autonomie: {specs['Autonomie']} km")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # 3. Parametri comuni
 distenta = st.slider("Distanță parcursă (km)", 10, 500, 100, key="distanta_comp")
