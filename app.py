@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Configurare pagină
-st.set_page_config(layout="wide", page_title="Comparație emisii CO2 vehicule electrice si hibride")
+st.set_page_config(layout="wide", page_title="Well-to-wheel")
 
 # CSS personalizat
 st.markdown("""
@@ -49,7 +49,7 @@ tari = {
     "Danemarca": {"Regenerabil": 81, "Gaz": 15, "Carbune": 4, "Nuclear": 0}
 }
 
-# Coeficienți emisii pe sursă de energie (gCO2/kWh)
+# Coeficienți emisii pe sursă de energie (gCO₂/kWh)
 coef_emisii = {
     "Carbune": 820,
     "Gaz": 490,
@@ -80,7 +80,9 @@ modele_vehicule = {
             "tip_hidrogen": {
                 "Gri": {"emisii_well": 120},
                 "Albastru": {"emisii_well": 45},
-                "Verde": {"emisii_well": 0}
+                "Verde": {"emisii_well": 0},
+		"Negru": {"emisii_well": 130},
+		"Roz": {"emisii_well": 45},
             }
         },
         "Hyundai Nexo": {
@@ -262,13 +264,13 @@ def calculeaza_emisii(tip_vehicul, model, tara, distanta, **kwargs):
         }
 
 # ---- INTERFAȚA UTILIZATOR ----
-st.title('Comparație emisii CO2 vehicule electrice si hibride')
+st.title('Comparație emisii CO₂ vehicule electrice si hibride')
 
 # 1. Selectare țară cu afișare mix energetic
 tara_selectata = st.selectbox("Tara pentru analiză:", options=list(tari.keys()))
 st.write(f"**Pondere generare energie electrica pentru {tara_selectata}:**")
 for sursa, procent in tari[tara_selectata].items():
-    st.write(f"- {sursa}: {procent}% (emisii: {coef_emisii[sursa]} gCO2/kWh)")
+    st.write(f"- {sursa}: {procent}% (emisii: {coef_emisii[sursa]} CO₂/kWh)")
 
 # 2. Selectare vehicule pentru comparație
 st.header("Vehicule pentru comparație")
@@ -359,11 +361,11 @@ with cols[3]:  # FCEV
         st.markdown('</div>', unsafe_allow_html=True)
 
 # 3. Parametri comuni
-distenta = st.slider("Distanță parcursă (km)", 10, 500, 100, key="distanta_comp")
+distenta = st.slider("Distanță parcursă [km]", 10, 500, 100, key="distanta_comp")
 
 # 4. Calcule și afișare rezultate
 if vehicule_selectate:
-    st.header("Rezultate comparație")
+    st.header("Rezultate emisii CO₂")
     
     # Calcul emisii pentru fiecare vehicul
     rezultate = {}
@@ -379,9 +381,16 @@ if vehicule_selectate:
     
     # Creare DataFrame pentru afișare
     df = pd.DataFrame.from_dict(rezultate, orient='index')
-    st.dataframe(df.style.format("{:.0f} gCO2"))
-    
-    # Grafic comparație - versiune îmbunătățită
+    st.table(
+    df.style
+    .format("{:.0f} gCO₂")
+    .set_properties(**{
+        'background-color': 'white',
+        'color': 'black',
+        'text-align': 'center'  
+    })
+)
+    # Grafic comparație
     fig = go.Figure()
     
     # Culori distincte pentru fiecare vehicul
@@ -389,7 +398,7 @@ if vehicule_selectate:
     
     for i, (vehicul, emisii) in enumerate(rezultate.items()):
         fig.add_trace(go.Bar(
-            x=["Well-to-Tank", "Tank-to-Wheel", "Total WTW"],
+            x=["Well-to-Tank", "Tank-to-Wheel", "Well-to-Wheel"],
             y=[emisii["Well-to-Tank"], emisii["Tank-to-Wheel"], emisii["Total"]],
             name=vehicul,
             marker_color=culori[i % len(culori)],
@@ -400,14 +409,21 @@ if vehicule_selectate:
     
     fig.update_layout(
         barmode='group',
-        title=f"Comparație emisii CO2 WTW pentru {distenta}km în {tara_selectata}",
-        xaxis_title="Fază",
-        yaxis_title="Emisii CO2 (g)",
+        title=f"Comparație emisii CO₂ Well-to-Wheel pe {distenta}km în {tara_selectata}",
+	title_font=dict(color='black', size=25),
+        yaxis_title="Emisii CO₂ [g]",
+   	yaxis_title_font=dict(color='black', size=17),
         plot_bgcolor='white',
-        paper_bgcolor='black',
-        font=dict(color='black', size=12),
+        paper_bgcolor='white',
+        font=dict(color='black', size=15),
+ 	xaxis=dict(
+        	tickfont=dict(color='black', size=17)
+    	),
+    	yaxis=dict(
+       		tickfont=dict(color='black', size=15)
+    	),
         legend=dict(
-            font=dict(color='white'),
+            font=dict(color='black', size=15),
             orientation="h",
             yanchor="bottom",
             y=1.02,
