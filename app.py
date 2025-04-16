@@ -410,7 +410,7 @@ if vehicule_selectate:
     fig.update_layout(
         barmode='group',
         title=f"Comparație emisii CO₂ Well-to-Wheel pe {distenta}km în {tara_selectata}",
-	title_font=dict(color='black', size=25),
+	title_font=dict(color='black', size=20),
         yaxis_title="Emisii CO₂ [g]",
    	yaxis_title_font=dict(color='black', size=17),
         plot_bgcolor='white',
