@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from PIL import Image
 
 # Configurare pagină
 st.set_page_config(layout="wide", page_title="Well-to-wheel")
@@ -60,22 +61,53 @@ coef_emisii = {
 # Modele vehicule
 modele_vehicule = {
     "HEV": {
-        "Toyota Corolla": {"consum": 4.2, "emisii_tank": 95},
-        "Honda Civic": {"consum": 4.5, "emisii_tank": 98},
-        "VW Golf": {"consum": 4.7, "emisii_tank": 102}
+        "Toyota Corolla Hybrid (Euro 6d)": {"consum": 4.1, "emisii_tank": 92},
+        "Toyota Prius (Euro 6)": {"consum": 3.9, "emisii_tank": 89},
+	"Toyota Prius (Euro 5)": {"consum": 4.1, "emisii_tank": 95},
+	"Toyota Prius (Euro 4)": {"consum": 5, "emisii_tank": 100},
+        "Honda Civic Hybrid (Euro 6d-TEMP)": {"consum": 4.3, "emisii_tank": 97},
+        "Hyundai Ioniq Hybrid (Euro 6)": {"consum": 3.8, "emisii_tank": 86},
+        "Lexus UX 250h (Euro 6d)": {"consum": 4.7, "emisii_tank": 105},
+        "Ford Mondeo Hybrid (Euro 6d)": {"consum": 4.9, "emisii_tank": 110},
+        "Toyota C-HR Hybrid (Euro 6d)": {"consum": 4.5, "emisii_tank": 101},
+        "Suzuki Swace (Euro 6d)": {"consum": 4.2, "emisii_tank": 95},
     },
     "PHEV": {
-        "VW Golf": {"consum_combustibil": 5.1, "consum_electric": 15, "emisii_tank": 85},
-        "Mercedes A": {"consum_combustibil": 5.4, "consum_electric": 16, "emisii_tank": 90},
-        "BMW Seria 1": {"consum_combustibil": 5.2, "consum_electric": 14, "emisii_tank": 88}
+        "Mitsubishi Outlander PHEV (Euro 6d)": {"consum_combustibil": 6.0, "consum_electric": 18, "emisii_tank": 80},
+        "Volvo XC60 Recharge (Euro 6d)": {"consum_combustibil": 6.5, "consum_electric": 19, "emisii_tank": 85},
+        "BMW 330e (Euro 6d-TEMP)": {"consum_combustibil": 5.5, "consum_electric": 15, "emisii_tank": 75},
+        "Mercedes A 250 e (Euro 6d)": {"consum_combustibil": 5.8, "consum_electric": 16, "emisii_tank": 78},
+        "Ford Kuga PHEV (Euro 6d)": {"consum_combustibil": 6.2, "consum_electric": 17, "emisii_tank": 82},
+        "Peugeot 308 HYBRID (Euro 6d)": {"consum_combustibil": 5.6, "consum_electric": 14, "emisii_tank": 76},
+        "VW Golf GTE (Euro 6d)": {"consum_combustibil": 5.9, "consum_electric": 15, "emisii_tank": 79},
+        "Audi A3 TFSI e (Euro 6d)": {"consum_combustibil": 5.7, "consum_electric": 14, "emisii_tank": 77},
+        "Kia Niro PHEV (Euro 6d)": {"consum_combustibil": 6.1, "consum_electric": 16, "emisii_tank": 81},
+        "Toyota RAV4 PHEV (Euro 6d)": {"consum_combustibil": 5.4, "consum_electric": 14, "emisii_tank": 74}
     },
     "BEV": {
-        "Tesla Model 3": {"consum": 14, "emisii_tank": 0},
-        "BMW i3": {"consum": 16, "emisii_tank": 0},
-        "Audi Q4 e-tron": {"consum": 19, "emisii_tank": 0}
+        "Tesla Model 3 Standard Range": {"consum": 14, "emisii_tank": 0},
+        "Tesla Model Y Long Range": {"consum": 16, "emisii_tank": 0},
+        "VW ID.3 Pro S": {"consum": 15, "emisii_tank": 0},
+        "VW ID.4 GTX": {"consum": 18, "emisii_tank": 0},
+        "Audi Q4 e-tron": {"consum": 17, "emisii_tank": 0},
+        "BMW i4 eDrive40": {"consum": 16, "emisii_tank": 0},
+        "Hyundai Kona Electric 64kWh": {"consum": 14, "emisii_tank": 0},
+        "Kia EV6 GT-Line": {"consum": 16, "emisii_tank": 0},
+        "Skoda Enyaq iV 80": {"consum": 16, "emisii_tank": 0},
+        "Renault Megane E-Tech EV60": {"consum": 15, "emisii_tank": 0}
     },
     "FCEV": {
-        "Toyota Mirai": {
+        "Toyota Mirai I": {
+            "consum": 1,
+            "tip_hidrogen": {
+                "Gri": {"emisii_well": 120},
+                "Albastru": {"emisii_well": 45},
+                "Verde": {"emisii_well": 0},
+		"Negru": {"emisii_well": 130},
+		"Roz": {"emisii_well": 45},
+            }
+	},
+	"Toyota Mirai II": {
             "consum": 0.9,
             "tip_hidrogen": {
                 "Gri": {"emisii_well": 120},
@@ -99,74 +131,221 @@ modele_vehicule = {
 # Specificații tehnice pentru fiecare model
 specs_tehnice = {
     "HEV": {
-        "Toyota Corolla": {
-            "An fabricatie": "-",
-            "Consum termic": "-",
+        "Toyota Corolla Hybrid (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "4.5 l/100km",
             "Consum electric": "-",
-            "Consum mixt": "-",
-            "Cilindree": "-",
-            "Greutate totala": "-",
-            "Putere maxima": "-",
-            "Cuplu maxim": "-"
+            "Consum mixt": "4.1 l/100km",
+            "Cilindree": "1798 cm³",
+            "Greutate totala": "1420 kg",
+            "Putere maxima": "140 CP",
+            "Cuplu maxim": "142 Nm"
         },
-        "Honda Civic": {
-            "An fabricatie": "-",
-            "Consum termic": "-",
+        "Toyota Prius (Euro 6)": {
+            "An fabricatie": "2021",
+            "Consum termic": "4.2 l/100km",
             "Consum electric": "-",
-            "Consum mixt": "-",
-            "Cilindree": "-",
-            "Greutate totala": "-",
-            "Putere maxima": "-",
-            "Cuplu maxim": "-"
+            "Consum mixt": "3.9 l/100km",
+            "Cilindree": "1798 cm³",
+            "Greutate totala": "1380 kg",
+            "Putere maxima": "122 CP",
+            "Cuplu maxim": "142 Nm"
         },
-        "VW Golf": {
-            "An fabricatie": "-",
-            "Consum termic": "-",
+	 "Toyota Prius (Euro 5)": {
+            "An fabricatie": "2021",
+            "Consum termic": "4.2 l/100km",
             "Consum electric": "-",
-            "Consum mixt": "-",
-            "Cilindree": "-",
-            "Greutate totala": "-",
-            "Putere maxima": "-",
-            "Cuplu maxim": "-"
-        }
+            "Consum mixt": "3.9 l/100km",
+            "Cilindree": "1798 cm³",
+            "Greutate totala": "1380 kg",
+            "Putere maxima": "122 CP",
+            "Cuplu maxim": "142 Nm"
+        },
+ 	"Toyota Prius (Euro 4)": {
+            "An fabricatie": "2021",
+            "Consum termic": "4.2 l/100km",
+            "Consum electric": "-",
+            "Consum mixt": "3.9 l/100km",
+            "Cilindree": "1798 cm³",
+            "Greutate totala": "1380 kg",
+            "Putere maxima": "122 CP",
+            "Cuplu maxim": "142 Nm"
+        },
+        "Honda Civic Hybrid (Euro 6d-TEMP)": {
+            "An fabricatie": "2022",
+            "Consum termic": "4.6 l/100km",
+            "Consum electric": "-",
+            "Consum mixt": "4.3 l/100km",
+            "Cilindree": "1993 cm³",
+            "Greutate totala": "1467 kg",
+            "Putere maxima": "135 CP",
+            "Cuplu maxim": "315 Nm"
+        },
+	 "Hyundai Ioniq Hybrid (Euro 6)": {
+            "An fabricatie": "2022",
+            "Consum termic": "4.6 l/100km",
+            "Consum electric": "-",
+            "Consum mixt": "4.3 l/100km",
+            "Cilindree": "1993 cm³",
+            "Greutate totala": "1467 kg",
+            "Putere maxima": "135 CP",
+            "Cuplu maxim": "315 Nm"
+        },
+ 	"Lexus UX 250h (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "4.6 l/100km",
+            "Consum electric": "-",
+            "Consum mixt": "4.3 l/100km",
+            "Cilindree": "1993 cm³",
+            "Greutate totala": "1467 kg",
+            "Putere maxima": "135 CP",
+            "Cuplu maxim": "315 Nm"
+        },
+ 	"Ford Mondeo Hybrid (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "4.6 l/100km",
+            "Consum electric": "-",
+            "Consum mixt": "4.3 l/100km",
+            "Cilindree": "1993 cm³",
+            "Greutate totala": "1467 kg",
+            "Putere maxima": "135 CP",
+            "Cuplu maxim": "315 Nm"
+        },
+ 	"Toyota C-HR Hybrid (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "4.6 l/100km",
+            "Consum electric": "-",
+            "Consum mixt": "4.3 l/100km",
+            "Cilindree": "1993 cm³",
+            "Greutate totala": "1467 kg",
+            "Putere maxima": "135 CP",
+            "Cuplu maxim": "315 Nm"
+        },
+ 	"Suzuki Swace (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "4.6 l/100km",
+            "Consum electric": "-",
+            "Consum mixt": "4.3 l/100km",
+            "Cilindree": "1993 cm³",
+            "Greutate totala": "1467 kg",
+            "Putere maxima": "135 CP",
+            "Cuplu maxim": "315 Nm"
+        },
     },
-    "PHEV": {
-        "VW Golf": {
-            "An fabricatie": "-",
-            "Consum termic": "-",
-            "Consum electric": "-",
-            "Consum mixt": "-",
-            "Cilindree": "-",
-            "Capacitate baterie": "-",
-            "Greutate totala": "-",
-            "Putere maxima": "-",
-            "Cuplu maxim": "-"
+   "PHEV": {
+        "Mitsubishi Outlander PHEV (Euro 6d)": {
+            "An fabricatie": "2021",
+            "Consum termic": "6.0 l/100km",
+            "Consum electric": "18 kWh/100km",
+            "Consum mixt": "1.8 l/100km",
+            "Cilindree": "2360 cm³",
+            "Greutate totala": "1995 kg",
+            "Putere maxima": "204 CP",
+            "Cuplu maxim": "332 Nm",
+            "Capacitate baterie": "13.8 kWh"
         },
-        "Mercedes A": {
-            "An fabricatie": "-",
-            "Consum termic": "-",
-            "Consum electric": "-",
-            "Consum mixt": "-",
-            "Cilindree": "-",
-            "Capacitate baterie": "-",
-            "Greutate totala": "-",
-            "Putere maxima": "-",
-            "Cuplu maxim": "-"
+        "Volvo XC60 Recharge (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
         },
-        "BMW Seria 1": {
-            "An fabricatie": "-",
-            "Consum termic": "-",
-            "Consum electric": "-",
-            "Consum mixt": "-",
-            "Cilindree": "-",
-            "Capacitate baterie": "-",
-            "Greutate totala": "-",
-            "Putere maxima": "-",
-            "Cuplu maxim": "-"
-        }
+	"BMW 330e (Euro 6d-TEMP)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
+        },
+	"Mercedes A 250 e (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
+        },
+	"Ford Kuga PHEV (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
+        },
+	"Peugeot 308 HYBRID (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
+        },
+	"VW Golf GTE (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
+        },
+	"Audi A3 TFSI e (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
+        },
+	"Kia Niro PHEV (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
+        },
+	"Toyota RAV4 PHEV (Euro 6d)": {
+            "An fabricatie": "2022",
+            "Consum termic": "6.5 l/100km",
+            "Consum electric": "19 kWh/100km",
+            "Consum mixt": "2.1 l/100km",
+            "Cilindree": "1969 cm³",
+            "Greutate totala": "2175 kg",
+            "Putere maxima": "340 CP",
+            "Cuplu maxim": "590 Nm",
+            "Capacitate baterie": "11.6 kWh"
+        },
     },
     "BEV": {
-        "Tesla Model 3": {
+        "Tesla Model 3 Standard Range": {
             "An fabricatie": "-",
             "Consum": "-",
             "Capacitate baterie": "-",
@@ -175,7 +354,7 @@ specs_tehnice = {
             "Cuplu maxim": "-",
             "Autonomie": "-"
         },
-        "BMW i3": {
+        "Tesla Model Y Long Range": {
             "An fabricatie": "-",
             "Consum": "-",
             "Capacitate baterie": "-",
@@ -184,7 +363,7 @@ specs_tehnice = {
             "Cuplu maxim": "-",
             "Autonomie": "-"
         },
-        "Audi Q4 e-tron": {
+        "VW ID.3 Pro S": {
             "An fabricatie": "-",
             "Consum": "-",
             "Capacitate baterie": "-",
@@ -192,10 +371,65 @@ specs_tehnice = {
             "Putere maxima": "-",
             "Cuplu maxim": "-",
             "Autonomie": "-"
-        }
+        },
+ 	"VW ID.4 GTX": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+ 	"Audi Q4 e-tron": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+ 	"Hyundai Kona Electric 64kWh": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+ 	"Skoda Enyaq iV 80": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+ 	"Renault Megane E-Tech EV60": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate baterie": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+
     },
     "FCEV": {
-        "Toyota Mirai": {
+        "Toyota Mirai I": {
+            "An fabricatie": "-",
+            "Consum": "-",
+            "Capacitate rezervor hidrogen": "-",
+            "Greutate totala": "-",
+            "Putere maxima": "-",
+            "Cuplu maxim": "-",
+            "Autonomie": "-"
+        },
+	 "Toyota Mirai II": {
             "An fabricatie": "-",
             "Consum": "-",
             "Capacitate rezervor hidrogen": "-",
@@ -438,3 +672,22 @@ if vehicule_selectate:
 
 else:
     st.warning("Niciun vehicul selectat")
+
+st.markdown(
+    """
+    <div style="
+        display: flex;
+        justify-content: center;
+        margin: 50px 0 20px 0;
+        width: 100%;
+    ">
+    """, 
+    unsafe_allow_html=True
+)
+
+try:
+    st.image("sigla_ARMM.png", width=150)
+except:
+    st.warning("Sigla ARMM nu a fost găsită")
+
+st.markdown("</div>", unsafe_allow_html=True)
