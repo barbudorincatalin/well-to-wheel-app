@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from PIL import Image
 
 # Configurare pagină
-st.set_page_config(layout="wide", page_title="Well-to-wheel")
+st.set_page_config(layout="wide", page_title="Well-to-Wheel")
 
 # CSS personalizat
 st.markdown("""
@@ -36,8 +36,10 @@ h1, h2, h3, p, .stMarkdown, .stSelectbox, .stRadio, .stSlider {
 """, unsafe_allow_html=True)
 
 # ---- DATE DE BAZĂ ----
-# Țări și mix energetic
+# mix energetic
 tari = {
+    "Europa": {"Carbune": 35, "Gaz": 15, "Nuclear": 6, "Regenerabil": 44},
+    "Romania": {"Gaz": 32, "Carbune": 28, "Nuclear": 20, "Regenerabil": 20},
     "Germania": {"Carbune": 35, "Gaz": 15, "Nuclear": 6, "Regenerabil": 44},
     "Franța": {"Nuclear": 69, "Regenerabil": 21, "Gaz": 7, "Carbune": 3},
     "Norvegia": {"Regenerabil": 98, "Gaz": 2, "Nuclear": 0, "Carbune": 0},
@@ -46,8 +48,19 @@ tari = {
     "Italia": {"Gaz": 42, "Regenerabil": 36, "Carbune": 5, "Nuclear": 0},
     "Suedia": {"Regenerabil": 65, "Nuclear": 30, "Gaz": 3, "Carbune": 2},
     "Olanda": {"Gaz": 54, "Regenerabil": 27, "Carbune": 14, "Nuclear": 5},
-    "Romania": {"Gaz": 32, "Carbune": 28, "Nuclear": 20, "Regenerabil": 20},
     "Danemarca": {"Regenerabil": 81, "Gaz": 15, "Carbune": 4, "Nuclear": 0}
+}
+
+# Coeficienți emisii pe productie de hidrogen (gCO₂/kWh)
+
+emisii_hidrogen = {
+    "Roz": 45,      # gCO₂/kg
+    "Albastru": 45,
+    "Verde": 0,
+    "Galben": 100,
+    "Brun": 130,
+    "Gri": 130,
+    "Turcoaz": 80,
 }
 
 # Coeficienți emisii pe sursă de energie (gCO₂/kWh)
@@ -73,16 +86,16 @@ modele_vehicule = {
         "Suzuki Swace (Euro 6d)": {"consum": 4.2, "emisii_tank": 95},
     },
     "PHEV": {
-        "Mitsubishi Outlander PHEV (Euro 6d)": {"consum_combustibil": 6.0, "consum_electric": 18, "emisii_tank": 80},
-        "Volvo XC60 Recharge (Euro 6d)": {"consum_combustibil": 6.5, "consum_electric": 19, "emisii_tank": 85},
-        "BMW 330e (Euro 6d-TEMP)": {"consum_combustibil": 5.5, "consum_electric": 15, "emisii_tank": 75},
-        "Mercedes A 250 e (Euro 6d)": {"consum_combustibil": 5.8, "consum_electric": 16, "emisii_tank": 78},
-        "Ford Kuga PHEV (Euro 6d)": {"consum_combustibil": 6.2, "consum_electric": 17, "emisii_tank": 82},
-        "Peugeot 308 HYBRID (Euro 6d)": {"consum_combustibil": 5.6, "consum_electric": 14, "emisii_tank": 76},
-        "VW Golf GTE (Euro 6d)": {"consum_combustibil": 5.9, "consum_electric": 15, "emisii_tank": 79},
-        "Audi A3 TFSI e (Euro 6d)": {"consum_combustibil": 5.7, "consum_electric": 14, "emisii_tank": 77},
-        "Kia Niro PHEV (Euro 6d)": {"consum_combustibil": 6.1, "consum_electric": 16, "emisii_tank": 81},
-        "Toyota RAV4 PHEV (Euro 6d)": {"consum_combustibil": 5.4, "consum_electric": 14, "emisii_tank": 74}
+        "Mitsubishi Outlander PHEV (Euro 6d)": {"consum_combustibil": 6.0, "consum_electric": 18, "emisii_tank": 80, "autonomie": 50},
+        "Volvo XC60 Recharge (Euro 6d)": {"consum_combustibil": 6.5, "consum_electric": 19, "emisii_tank": 85, "autonomie": 50},
+        "BMW 330e (Euro 6d-TEMP)": {"consum_combustibil": 5.5, "consum_electric": 15, "emisii_tank": 75, "autonomie": 50},
+        "Mercedes A 250 e (Euro 6d)": {"consum_combustibil": 5.8, "consum_electric": 16, "emisii_tank": 78, "autonomie": 50},
+        "Ford Kuga PHEV (Euro 6d)": {"consum_combustibil": 6.2, "consum_electric": 17, "emisii_tank": 82, "autonomie": 50},
+        "Peugeot 308 HYBRID (Euro 6d)": {"consum_combustibil": 5.6, "consum_electric": 14, "emisii_tank": 76, "autonomie": 50},
+        "VW Golf GTE (Euro 6d)": {"consum_combustibil": 5.9, "consum_electric": 15, "emisii_tank": 79, "autonomie": 50},
+        "Audi A3 TFSI e (Euro 6d)": {"consum_combustibil": 5.7, "consum_electric": 14, "emisii_tank": 77, "autonomie": 50},
+        "Kia Niro PHEV (Euro 6d)": {"consum_combustibil": 6.1, "consum_electric": 16, "emisii_tank": 81, "autonomie": 50},
+        "Toyota RAV4 PHEV (Euro 6d)": {"consum_combustibil": 5.4, "consum_electric": 14, "emisii_tank": 74, "autonomie": 50}
     },
     "BEV": {
         "Tesla Model 3 Standard Range": {"consum": 14, "emisii_tank": 0},
@@ -98,32 +111,13 @@ modele_vehicule = {
     },
     "FCEV": {
         "Toyota Mirai I": {
-            "consum": 1,
-            "tip_hidrogen": {
-                "Gri": {"emisii_well": 120},
-                "Albastru": {"emisii_well": 45},
-                "Verde": {"emisii_well": 0},
-		"Negru": {"emisii_well": 130},
-		"Roz": {"emisii_well": 45},
-            }
+            "consum": 1
 	},
 	"Toyota Mirai II": {
             "consum": 0.9,
-            "tip_hidrogen": {
-                "Gri": {"emisii_well": 120},
-                "Albastru": {"emisii_well": 45},
-                "Verde": {"emisii_well": 0},
-		"Negru": {"emisii_well": 130},
-		"Roz": {"emisii_well": 45},
-            }
         },
         "Hyundai Nexo": {
-            "consum": 1.0,
-            "tip_hidrogen": {
-                "Gri": {"emisii_well": 125},
-                "Albastru": {"emisii_well": 48},
-                "Verde": {"emisii_well": 0}
-            }
+            "consum": 1.0
         }
     }
 }
@@ -133,215 +127,215 @@ specs_tehnice = {
     "HEV": {
         "Toyota Corolla Hybrid (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "4.5 l/100km",
+            "Consum termic": "4.5",
             "Consum electric": "-",
-            "Consum mixt": "4.1 l/100km",
-            "Cilindree": "1798 cm³",
-            "Greutate totala": "1420 kg",
-            "Putere maxima": "140 CP",
-            "Cuplu maxim": "142 Nm"
+            "Consum mixt": "4.1",
+            "Cilindree": "1798",
+            "Greutate totala": "1420",
+            "Putere maxima": "140",
+            "Cuplu maxim": "142"
         },
         "Toyota Prius (Euro 6)": {
             "An fabricatie": "2021",
-            "Consum termic": "4.2 l/100km",
+            "Consum termic": "4.2",
             "Consum electric": "-",
-            "Consum mixt": "3.9 l/100km",
-            "Cilindree": "1798 cm³",
-            "Greutate totala": "1380 kg",
-            "Putere maxima": "122 CP",
-            "Cuplu maxim": "142 Nm"
+            "Consum mixt": "3.9",
+            "Cilindree": "1798",
+            "Greutate totala": "1380",
+            "Putere maxima": "122",
+            "Cuplu maxim": "142"
         },
 	 "Toyota Prius (Euro 5)": {
             "An fabricatie": "2021",
-            "Consum termic": "4.2 l/100km",
+            "Consum termic": "4.2",
             "Consum electric": "-",
-            "Consum mixt": "3.9 l/100km",
-            "Cilindree": "1798 cm³",
-            "Greutate totala": "1380 kg",
-            "Putere maxima": "122 CP",
-            "Cuplu maxim": "142 Nm"
+            "Consum mixt": "3.9",
+            "Cilindree": "1798",
+            "Greutate totala": "1380",
+            "Putere maxima": "122",
+            "Cuplu maxim": "142"
         },
  	"Toyota Prius (Euro 4)": {
             "An fabricatie": "2021",
-            "Consum termic": "4.2 l/100km",
+            "Consum termic": "4.2",
             "Consum electric": "-",
-            "Consum mixt": "3.9 l/100km",
-            "Cilindree": "1798 cm³",
-            "Greutate totala": "1380 kg",
-            "Putere maxima": "122 CP",
-            "Cuplu maxim": "142 Nm"
+            "Consum mixt": "3.9",
+            "Cilindree": "1798",
+            "Greutate totala": "1380",
+            "Putere maxima": "122",
+            "Cuplu maxim": "142"
         },
         "Honda Civic Hybrid (Euro 6d-TEMP)": {
             "An fabricatie": "2022",
-            "Consum termic": "4.6 l/100km",
+            "Consum termic": "4.6",
             "Consum electric": "-",
-            "Consum mixt": "4.3 l/100km",
-            "Cilindree": "1993 cm³",
-            "Greutate totala": "1467 kg",
-            "Putere maxima": "135 CP",
-            "Cuplu maxim": "315 Nm"
+            "Consum mixt": "4.3",
+            "Cilindree": "1993",
+            "Greutate totala": "1467",
+            "Putere maxima": "135",
+            "Cuplu maxim": "315"
         },
 	 "Hyundai Ioniq Hybrid (Euro 6)": {
             "An fabricatie": "2022",
-            "Consum termic": "4.6 l/100km",
+            "Consum termic": "4.6",
             "Consum electric": "-",
-            "Consum mixt": "4.3 l/100km",
-            "Cilindree": "1993 cm³",
-            "Greutate totala": "1467 kg",
-            "Putere maxima": "135 CP",
-            "Cuplu maxim": "315 Nm"
+            "Consum mixt": "4.3",
+            "Cilindree": "1993",
+            "Greutate totala": "1467",
+            "Putere maxima": "135",
+            "Cuplu maxim": "315"
         },
  	"Lexus UX 250h (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "4.6 l/100km",
+            "Consum termic": "4.6",
             "Consum electric": "-",
-            "Consum mixt": "4.3 l/100km",
-            "Cilindree": "1993 cm³",
-            "Greutate totala": "1467 kg",
-            "Putere maxima": "135 CP",
-            "Cuplu maxim": "315 Nm"
+            "Consum mixt": "4.3",
+            "Cilindree": "1993",
+            "Greutate totala": "1467",
+            "Putere maxima": "135",
+            "Cuplu maxim": "315"
         },
  	"Ford Mondeo Hybrid (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "4.6 l/100km",
+            "Consum termic": "4.6",
             "Consum electric": "-",
-            "Consum mixt": "4.3 l/100km",
-            "Cilindree": "1993 cm³",
-            "Greutate totala": "1467 kg",
-            "Putere maxima": "135 CP",
-            "Cuplu maxim": "315 Nm"
+            "Consum mixt": "4.3",
+            "Cilindree": "1993",
+            "Greutate totala": "1467",
+            "Putere maxima": "135",
+            "Cuplu maxim": "315"
         },
  	"Toyota C-HR Hybrid (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "4.6 l/100km",
+            "Consum termic": "4.6",
             "Consum electric": "-",
-            "Consum mixt": "4.3 l/100km",
-            "Cilindree": "1993 cm³",
-            "Greutate totala": "1467 kg",
-            "Putere maxima": "135 CP",
-            "Cuplu maxim": "315 Nm"
+            "Consum mixt": "4.3",
+            "Cilindree": "1993",
+            "Greutate totala": "1467",
+            "Putere maxima": "135",
+            "Cuplu maxim": "315"
         },
  	"Suzuki Swace (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "4.6 l/100km",
+            "Consum termic": "4.6",
             "Consum electric": "-",
-            "Consum mixt": "4.3 l/100km",
-            "Cilindree": "1993 cm³",
-            "Greutate totala": "1467 kg",
-            "Putere maxima": "135 CP",
-            "Cuplu maxim": "315 Nm"
+            "Consum mixt": "4.3",
+            "Cilindree": "1993",
+            "Greutate totala": "1467",
+            "Putere maxima": "135",
+            "Cuplu maxim": "315"
         },
     },
    "PHEV": {
         "Mitsubishi Outlander PHEV (Euro 6d)": {
             "An fabricatie": "2021",
-            "Consum termic": "6.0 l/100km",
-            "Consum electric": "18 kWh/100km",
-            "Consum mixt": "1.8 l/100km",
-            "Cilindree": "2360 cm³",
-            "Greutate totala": "1995 kg",
-            "Putere maxima": "204 CP",
-            "Cuplu maxim": "332 Nm",
-            "Capacitate baterie": "13.8 kWh"
+            "Consum termic": "6.0",
+            "Consum electric": "18",
+            "Consum mixt": "1.8",
+            "Cilindree": "2360",
+            "Greutate totala": "1995",
+            "Putere maxima": "204",
+            "Cuplu maxim": "332",
+            "Capacitate baterie": "13.8"
         },
         "Volvo XC60 Recharge (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
-            "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
+            "Cilindree": "1969",
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
 	"BMW 330e (Euro 6d-TEMP)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
-            "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
+            "Cilindree": "1969",
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
 	"Mercedes A 250 e (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
-            "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
+            "Cilindree": "1969",
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
 	"Ford Kuga PHEV (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
-            "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
+            "Cilindree": "1969",
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
 	"Peugeot 308 HYBRID (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
-            "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
+            "Cilindree": "1969",
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
 	"VW Golf GTE (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
-            "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
+            "Cilindree": "1969",
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
 	"Audi A3 TFSI e (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
-            "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
+            "Cilindree": "1969",
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
 	"Kia Niro PHEV (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
-            "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
+            "Cilindree": "1969",
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
 	"Toyota RAV4 PHEV (Euro 6d)": {
             "An fabricatie": "2022",
-            "Consum termic": "6.5 l/100km",
-            "Consum electric": "19 kWh/100km",
-            "Consum mixt": "2.1 l/100km",
+            "Consum termic": "6.5",
+            "Consum electric": "19",
+            "Consum mixt": "2.1",
             "Cilindree": "1969 cm³",
-            "Greutate totala": "2175 kg",
-            "Putere maxima": "340 CP",
-            "Cuplu maxim": "590 Nm",
-            "Capacitate baterie": "11.6 kWh"
+            "Greutate totala": "2175",
+            "Putere maxima": "340",
+            "Cuplu maxim": "590",
+            "Capacitate baterie": "11.6"
         },
     },
     "BEV": {
@@ -458,7 +452,8 @@ def calculeaza_emisii(tip_vehicul, model, tara, distanta, **kwargs):
     
     if tip_vehicul == "HEV":
         date = modele_vehicule["HEV"][model]
-        emisii_well = 4000
+        emisii_per_litru=560
+        emisii_well = date["consum"] / 100 * emisii_per_litru * distanta
         emisii_tank = date["emisii_tank"] * distanta
         return {
             "Well-to-Tank": emisii_well,
@@ -468,14 +463,21 @@ def calculeaza_emisii(tip_vehicul, model, tara, distanta, **kwargs):
     
     elif tip_vehicul == "PHEV":
         date = modele_vehicule["PHEV"][model]
-        emisii_well = (date["consum_electric"] * distanta) * (emisii_medii_tara/100)
-        emisii_tank = (date["consum_combustibil"] * distanta) * date["emisii_tank"]
+        emisii_per_litru = 560  # gCO₂/litru pentru benzină
+    
+        if distanta <= date["autonomie"]:
+            # Tot traseul este parcurs electric
+            emisii_well = (date["consum_electric"] / 100 * distanta) * (emisii_medii_tara / 100)
+        else:
+            emisii_well = (date["consum_electric"] / 100 * date["autonomie"]) * emisii_medii_tara + (date["consum_combustibil"] / 100 * (distanta - date["autonomie"]) * emisii_per_litru )     
+
+        emisii_tank = date["emisii_tank"] * distanta  
         return {
             "Well-to-Tank": emisii_well,
             "Tank-to-Wheel": emisii_tank,
             "Total": emisii_well + emisii_tank
         }
-    
+
     elif tip_vehicul == "BEV":
         date = modele_vehicule["BEV"][model]
         emisii_well = (date["consum"] * distanta) * (emisii_medii_tara/100)
@@ -488,20 +490,26 @@ def calculeaza_emisii(tip_vehicul, model, tara, distanta, **kwargs):
     
     elif tip_vehicul == "FCEV":
         date = modele_vehicule["FCEV"][model]
-        tip_hidrogen = kwargs.get("tip_hidrogen", "Gri")
-        emisii_well = date["consum"] * distanta * date["tip_hidrogen"][tip_hidrogen]["emisii_well"]
-        emisii_tank = 0
+        tip_hidrogen = kwargs.get("tip_hidrogen", "Gri")  
+
+        emisii_tip_hidrogen = emisii_hidrogen[tip_hidrogen]  
+        consum = date["consum"]  # consum vehicul în kg H₂ / 100 km
+
+        emisii_well = (consum / 100) * emisii_tip_hidrogen * distanta  
+        emisii_tank = 0  # Nu există emisii TTW la FCEV
+
         return {
             "Well-to-Tank": emisii_well,
             "Tank-to-Wheel": emisii_tank,
             "Total": emisii_well + emisii_tank
         }
 
+
 # ---- INTERFAȚA UTILIZATOR ----
-st.title('Comparație emisii CO₂ vehicule electrice si hibride')
+st.title('Analiză Well-to-Wheel')
 
 # 1. Selectare țară cu afișare mix energetic
-tara_selectata = st.selectbox("Tara pentru analiză:", options=list(tari.keys()))
+tara_selectata = st.selectbox("Locație pentru analiză:", options=list(tari.keys()))
 st.write(f"**Pondere generare energie electrica pentru {tara_selectata}:**")
 for sursa, procent in tari[tara_selectata].items():
     st.write(f"- {sursa}: {procent}% (emisii: {coef_emisii[sursa]} CO₂/kWh)")
@@ -520,8 +528,7 @@ with cols[0]:  # HEV
         
         # Afișare specificații tehnice
         specs = specs_tehnice["HEV"][model]
-        st.markdown('<div class="specs-box">', unsafe_allow_html=True)
-        st.write("**Specificații tehnice:**")
+        st.write("**Specificații tehnice vehicul selectat:**")
         st.write(f"- An fabricație: {specs['An fabricatie']}")
         st.write(f"- Consum termic: {specs['Consum termic']} l/100km")
         st.write(f"- Consum electric: {specs['Consum electric']} kWh/100km")
@@ -540,8 +547,7 @@ with cols[1]:  # PHEV
         
         # Afișare specificații tehnice
         specs = specs_tehnice["PHEV"][model]
-        st.markdown('<div class="specs-box">', unsafe_allow_html=True)
-        st.write("**Specificații tehnice:**")
+        st.write("**Specificații tehnice vehicul selectat:**")
         st.write(f"- An fabricație: {specs['An fabricatie']}")
         st.write(f"- Consum termic: {specs['Consum termic']} l/100km")
         st.write(f"- Consum electric: {specs['Consum electric']} kWh/100km")
@@ -561,8 +567,7 @@ with cols[2]:  # BEV
         
         # Afișare specificații tehnice
         specs = specs_tehnice["BEV"][model]
-        st.markdown('<div class="specs-box">', unsafe_allow_html=True)
-        st.write("**Specificații tehnice:**")
+        st.write("**Specificații tehnice vehicul selectat:**")
         st.write(f"- An fabricație: {specs['An fabricatie']}")
         st.write(f"- Consum: {specs['Consum']} kWh/100km")
         st.write(f"- Capacitate baterie: {specs['Capacitate baterie']} kWh")
@@ -576,15 +581,22 @@ with cols[3]:  # FCEV
     st.subheader("FCEV")
     if st.checkbox("Adaugă FCEV", key="fcev_check"):
         model = st.selectbox("Selectează autovehicul FCEV", options=list(modele_vehicule["FCEV"].keys()))
-        tip_hidrogen = st.radio("Tip hidrogen", 
-                               options=list(modele_vehicule["FCEV"][model]["tip_hidrogen"].keys()),
-                               key=f"hidrogen_{model}")
-        vehicule_selectate["FCEV"] = {"model": model, "tip_hidrogen": tip_hidrogen}
         
+        tip_hidrogen = st.radio("Tip hidrogen", 
+                                options=list(emisii_hidrogen.keys()),  
+                                key=f"hidrogen_{model}")
+        
+        vehicule_selectate["FCEV"] = {
+            "model": model,
+            "tip_hidrogen": tip_hidrogen
+        }
+        
+        # Afișează emisiile per kg H₂
+        st.markdown(f" **Emisii CO₂ hidrogen {tip_hidrogen}:** {emisii_hidrogen[tip_hidrogen]} g CO₂ / kg H₂")
+
         # Afișare specificații tehnice
         specs = specs_tehnice["FCEV"][model]
-        st.markdown('<div class="specs-box">', unsafe_allow_html=True)
-        st.write("**Specificații tehnice:**")
+        st.write("**Specificații tehnice vehicul selectat:**")
         st.write(f"- An fabricație: {specs['An fabricatie']}")
         st.write(f"- Consum: {specs['Consum']} kg/100km")
         st.write(f"- Capacitate rezervor hidrogen: {specs['Capacitate rezervor hidrogen']} kg")
@@ -595,7 +607,7 @@ with cols[3]:  # FCEV
         st.markdown('</div>', unsafe_allow_html=True)
 
 # 3. Parametri comuni
-distenta = st.slider("Distanță parcursă [km]", 10, 500, 100, key="distanta_comp")
+distanta = st.slider("Distanță parcursă [km]", 10, 500, 100, key="distanta_comp")
 
 # 4. Calcule și afișare rezultate
 if vehicule_selectate:
@@ -608,7 +620,7 @@ if vehicule_selectate:
             tip_vehicul=tip_vehicul,
             model=config["model"],
             tara=tara_selectata,
-            distanta=distenta,
+            distanta=distanta,
             **{k:v for k,v in config.items() if k != "model"}
         )
         rezultate[f"{tip_vehicul} - {config['model']}"] = emisii
@@ -643,24 +655,24 @@ if vehicule_selectate:
     
     fig.update_layout(
         barmode='group',
-        title=f"Comparație emisii CO₂ Well-to-Wheel pe {distenta}km în {tara_selectata}",
-	title_font=dict(color='black', size=20),
+        xaxis_title=f"Comparație emisii CO₂ Well-to-Wheel pe distanța de {distanta}km în {tara_selectata}",
+   	xaxis_title_font=dict(color='black', size=30),        
         yaxis_title="Emisii CO₂ [g]",
-   	yaxis_title_font=dict(color='black', size=17),
+   	yaxis_title_font=dict(color='black', size=20),
         plot_bgcolor='white',
         paper_bgcolor='white',
-        font=dict(color='black', size=15),
+        font=dict(color='black', size=17),
  	xaxis=dict(
-        	tickfont=dict(color='black', size=17)
+        	tickfont=dict(color='black', size=20)
     	),
     	yaxis=dict(
-       		tickfont=dict(color='black', size=15)
+       		tickfont=dict(color='black', size=16)
     	),
         legend=dict(
-            font=dict(color='black', size=15),
+            font=dict(color='black', size=17),
             orientation="h",
             yanchor="bottom",
-            y=1.02,
+            y=1,
             xanchor="right",
             x=1
         ),
